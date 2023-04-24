@@ -3,23 +3,33 @@ from random import choice
 from datacenter.models import Schoolkid, Mark, Lesson, Chastisement, Commendation
 
 
+
 def fix_marks(schoolkid):
     """
     Исправляем негативные оценки школьника на '5'
+    Если ученика не существует или более 1 - выбросит исключение
     """
-    child = Schoolkid.objects.get(full_name__contains=schoolkid)
-    child_marks = Mark.objects.filter(schoolkid=child.id, points__lt=4)
-    for mark in child_marks:
-        mark.points = 5
-        mark.save()
+    if Schoolkid.objects.get(
+            full_name__contains=schoolkid):
+        for mark in Mark.objects.filter(
+                schoolkid__full_name__contains=schoolkid,
+                points__lt=4):
+            mark.points = 5
+            mark.save()
+        print('Оценки изменены')
 
 
 def remove_chastisements(schoolkid):
     """
-    Удаляем замечания от препадавателей
+    Удаляем замечания от препадавателей.
+    Если ученика не существует или более 1 - выбросит исключение
     """
-    child = Schoolkid.objects.get(full_name__contains=schoolkid)
-    Chastisement.objects.filter(schoolkid=child.id).delete()
+    if Schoolkid.objects.get(
+            full_name__contains=schoolkid):
+        Chastisement.objects.filter(
+            schoolkid__full_name__contains=schoolkid
+        ).delete()
+        print('Замечания удалены')
 
 
 def create_commendations(schoolkid, lesson):
@@ -39,18 +49,19 @@ def create_commendations(schoolkid, lesson):
         'Ты растешь над собой!', 'Ты многое сделал, я это вижу!',
         'Теперь у тебя точно все получится!'
     ]
-    child = Schoolkid.objects.get(full_name__contains=schoolkid)
 
+    child = Schoolkid.objects.get(full_name__contains=schoolkid)
     lesson = Lesson.objects.filter(
         year_of_study=child.year_of_study,
         group_letter=child.group_letter,
         subject__title=subject
-    ).order_by('date').first()
+    ).order_by('-date').first()
 
     Commendation.objects.create(
         text=choice(praises),
         created=lesson.date,
-        schoolkid=child,
+        schoolkid=schoolkid,
         subject=lesson.subject,
         teacher=lesson.teacher
     )
+    print('Похвалы созданы')
