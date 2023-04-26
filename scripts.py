@@ -18,11 +18,9 @@ def check_schoolkid(schoolkid):
     """
     try:
         child = Schoolkid.objects.get(
-            full_name__contains=schoolkid.title()
+            full_name__contains=schoolkid
         )
-        if bool(child):
-            return child
-        return
+        return child
     except Schoolkid.DoesNotExist:
         logger.error('Ученик с такими данными не существует')
     except Schoolkid.MultipleObjectsReturned:
@@ -35,12 +33,10 @@ def fix_marks(schoolkid):
     """
     negative_marks = 0
     child = check_schoolkid(schoolkid)
-
     if child:
         negative_marks = Mark.objects\
             .filter(schoolkid=child, points__lt=4)\
             .update(points=5)
-
     if bool(negative_marks):
         print('Оценки изменены')
         return
@@ -55,8 +51,7 @@ def remove_chastisements(schoolkid):
     child = check_schoolkid(schoolkid)
     if child:
         chastisements = Chastisement.objects.filter(schoolkid=child)
-
-    if bool(chastisements):
+    if chastisements:
         chastisements.delete()
         print('Замечания удалены')
         return
@@ -74,35 +69,28 @@ def create_commendations(schoolkid, subject='Физкультура'):
         'Ты на верном пути!', 'Здорово!', 'Я тобой горжусь!',
         'Я вижу, как ты стараешься!'
     ]
-
     child = check_schoolkid(schoolkid)
     if not child:
         return
-
     capitalized_subject = subject.strip().capitalize()
     if not capitalized_subject:
         print('Предмет указан некорректно')
         return
-
     lessons = Lesson.objects.filter(
         year_of_study=child.year_of_study,
         group_letter=child.group_letter,
         subject__title__contains=capitalized_subject
     )
-
     if not lessons:
         print('Предмет не найден')
         return
-
     lesson_for_commendation = lessons.order_by('-date').first()
-
     commendations = Commendation.objects.filter(
         created=lesson_for_commendation.date,
         schoolkid=child,
         subject=lesson_for_commendation.subject,
         teacher=lesson_for_commendation.teacher
     )
-
     if not commendations:
         Commendation.objects.create(
             text=choice(praises),
