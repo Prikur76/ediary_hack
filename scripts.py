@@ -72,14 +72,13 @@ def create_commendations(schoolkid, subject='Физкультура'):
     child = check_schoolkid(schoolkid)
     if not child:
         return
-    stripped_subject = subject.strip()
-    if not stripped_subject:
+    if not subject:
         print('Предмет указан некорректно')
         return
     lessons = Lesson.objects.filter(
         year_of_study=child.year_of_study,
         group_letter=child.group_letter,
-        subject__title__icontains=stripped_subject
+        subject__title__icontains=subject.strip()
     )
     if not lessons:
         print('Предмет не найден')
