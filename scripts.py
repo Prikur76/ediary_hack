@@ -18,7 +18,7 @@ def check_schoolkid(schoolkid):
     """
     try:
         child = Schoolkid.objects.get(
-            full_name__contains=schoolkid
+            full_name__icontains=schoolkid
         )
         return child
     except Schoolkid.DoesNotExist:
