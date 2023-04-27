@@ -72,14 +72,14 @@ def create_commendations(schoolkid, subject='Физкультура'):
     child = check_schoolkid(schoolkid)
     if not child:
         return
-    capitalized_subject = subject.strip().capitalize()
-    if not capitalized_subject:
+    stripped_subject = subject.strip()
+    if not stripped_subject:
         print('Предмет указан некорректно')
         return
     lessons = Lesson.objects.filter(
         year_of_study=child.year_of_study,
         group_letter=child.group_letter,
-        subject__title__contains=capitalized_subject
+        subject__title__icontains=stripped_subject
     )
     if not lessons:
         print('Предмет не найден')
